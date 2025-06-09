@@ -81,6 +81,16 @@ public class RegistrationController: NSObject, ASAuthorizationControllerDelegate
             return
         }                        
         
+        
+        if #available(iOS 18.0, macOS 15.0, *) {
+            if authorizationError.code == ASAuthorizationError.matchedExcludedCredential {
+                // This error is specific to iOS 18 and macOS 15, indicating that the request matched an excluded credential.
+                completion(.failure(AuthorizationError(type: .excludeCredentialsMatch, originalError: error)))
+                return
+            }
+        }
+        
+        
         switch (authorizationError.code) {
         case ASAuthorizationError.canceled:
             if (error.localizedDescription.contains("No credentials available for login.")) {
