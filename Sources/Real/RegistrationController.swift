@@ -6,9 +6,16 @@ import AuthenticationServices
 public class RegistrationController: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding, Cancelable {
     private var completion: ((Result<AuthorizationResult, AuthorizationError>) -> Void)
     private var authorizationController: ASAuthorizationController?
+    private var hasCompleted = false
     
     init(completion: @escaping ((Result<AuthorizationResult, AuthorizationError>) -> Void)) {
         self.completion = completion;
+    }
+    
+    private func completeOnce(_ result: Result<AuthorizationResult, AuthorizationError>) {
+        guard !hasCompleted else { return }
+        hasCompleted = true
+        completion(result)
     }
     
     func performRequests(requests: [ASAuthorizationRequest]) {
@@ -94,9 +101,9 @@ public class RegistrationController: NSObject, ASAuthorizationControllerDelegate
         switch (authorizationError.code) {
         case ASAuthorizationError.canceled:
             if (error.localizedDescription.contains("No credentials available for login.")) {
-                completion(.failure(AuthorizationError(type: .noCredentialsAvailable, originalError: error)))
+                completeOnce(.failure(AuthorizationError(type: .noCredentialsAvailable, originalError: error)))
             } else {
-                completion(.failure(AuthorizationError(type: .cancelled, originalError: error)))
+                completeOnce(.failure(AuthorizationError(type: .cancelled, originalError: error)))
             }
             break
         case ASAuthorizationError.failed:
@@ -130,8 +137,18 @@ public class RegistrationController: NSObject, ASAuthorizationControllerDelegate
         if let legacyWindow = UIApplication.shared.delegate?.window ?? nil {
             return legacyWindow
         }
-        fatalError("No window available for ASAuthorizationController on iOS. Ensure a UIWindowScene is active or a delegate window is set.")
         
+        // No valid window found - create a dummy window to return, then cancel the operation
+        let dummyWindow = UIWindow(frame: CGRect.zero)
+        
+        // Cancel the authorization and report the error
+        DispatchQueue.main.async {
+            self.completion(.failure(AuthorizationError(type: .noPresentationAnchor)))
+            self.authorizationController?.cancel()
+        }
+        
+        return dummyWindow
+
 #elseif os(macOS)
         if let keyWindow = NSApplication.shared.keyWindow {
             return keyWindow
@@ -143,9 +160,27 @@ public class RegistrationController: NSObject, ASAuthorizationControllerDelegate
         if let anyWindow = NSApplication.shared.windows.first(where: { $0.isVisible }) {
             return anyWindow
         }
-        fatalError("No window available for ASAuthorizationController on macOS. Ensure a window is key or main.")
+        
+        // No valid window found - create a dummy window to return, then cancel the operation
+        let dummyWindow = NSWindow(contentRect: NSRect.zero, styleMask: [], backing: .buffered, defer: false)
+        
+        // Cancel the authorization and report the error
+        DispatchQueue.main.async {
+            self.completion(.failure(AuthorizationError(type: .noPresentationAnchor)))
+            self.authorizationController?.cancel()
+        }
+        
+        return dummyWindow
 #else
-        fatalError("Unsupported platform for presentationAnchor")
+        // Unsupported platform - create a dummy window and cancel
+        let dummyWindow = UIWindow(frame: CGRect.zero)
+        
+        DispatchQueue.main.async {
+            self.completion(.failure(AuthorizationError(type: .noPresentationAnchor)))
+            self.authorizationController?.cancel()
+        }
+        
+        return dummyWindow
 #endif
     }
     

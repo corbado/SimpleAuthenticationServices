@@ -110,6 +110,7 @@ public enum AuthorizationErrorType: Equatable, Sendable, Codable {
     case noCredentialsAvailable
     case functionNotSupported
     case unhandled // this indicates an issue in the SimpleAuthenticationServices library => create a GitHub issue
+    case noPresentationAnchor
 }
 
 public struct AuthorizationError: Error, LocalizedError, Sendable {

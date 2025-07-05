@@ -424,15 +424,3 @@ struct ConnectExampleApp: App {
     }
 }
 ```
-
-## API Overview
-
-<!-- ... (Existing API Overview section) ... -->
-
-## Contributing
-
-<!-- ... (Existing Contributing section) ... -->
-
-## License
-
-<!-- ... (Existing License section) ... -->
