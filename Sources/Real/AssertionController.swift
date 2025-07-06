@@ -56,17 +56,17 @@ public class AssertionController: NSObject, ASAuthorizationControllerDelegate, A
                 )
             )
             
-            completion(.success(response))
+            completeOnce(.success(response))
             break
         default:
-            completion(.failure(AuthorizationError.init(type: .unhandled)))
+            completeOnce(.failure(AuthorizationError.init(type: .unhandled)))
             break
         }
     }
     
     public func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
         guard let authorizationError = error as? ASAuthorizationError else {
-            completion(.failure(AuthorizationError(type: .unknown, originalError: error)))
+            completeOnce(.failure(AuthorizationError(type: .unknown, originalError: error)))
             return
         }
         
@@ -80,16 +80,16 @@ public class AssertionController: NSObject, ASAuthorizationControllerDelegate, A
             break
         case ASAuthorizationError.failed:
             if (error.localizedDescription.contains("is not associated with domain")) {
-                completion(.failure(AuthorizationError(type: .domainNotAssociated, originalError: error)))
+                completeOnce(.failure(AuthorizationError(type: .domainNotAssociated, originalError: error)))
             } else {
-                completion(.failure(AuthorizationError(type: .unknown, originalError: error)))
+                completeOnce(.failure(AuthorizationError(type: .unknown, originalError: error)))
             }
             break
         case ASAuthorizationError.invalidResponse, ASAuthorizationError.notHandled, ASAuthorizationError.unknown:
-            completion(.failure(AuthorizationError(type: .unknown, originalError: error)))
+            completeOnce(.failure(AuthorizationError(type: .unknown, originalError: error)))
             break
         default:
-            completion(.failure(AuthorizationError(type: .cancelled, originalError: error)))
+            completeOnce(.failure(AuthorizationError(type: .cancelled, originalError: error)))
             break
         }
         
@@ -115,7 +115,7 @@ public class AssertionController: NSObject, ASAuthorizationControllerDelegate, A
         
         // Cancel the authorization and report the error
         DispatchQueue.main.async {
-            self.completion(.failure(AuthorizationError(type: .noPresentationAnchor)))
+            self.completeOnce(.failure(AuthorizationError(type: .noPresentationAnchor)))
             self.authorizationController?.cancel()
         }
         
@@ -138,7 +138,7 @@ public class AssertionController: NSObject, ASAuthorizationControllerDelegate, A
         
         // Cancel the authorization and report the error
         DispatchQueue.main.async {
-            self.completion(.failure(AuthorizationError(type: .noPresentationAnchor)))
+            self.completeOnce(.failure(AuthorizationError(type: .noPresentationAnchor)))
             self.authorizationController?.cancel()
         }
         
@@ -148,7 +148,7 @@ public class AssertionController: NSObject, ASAuthorizationControllerDelegate, A
         let dummyWindow = UIWindow(frame: CGRect.zero)
         
         DispatchQueue.main.async {
-            self.completion(.failure(AuthorizationError(type: .noPresentationAnchor)))
+            self.completeOnce(.failure(AuthorizationError(type: .noPresentationAnchor)))
             self.authorizationController?.cancel()
         }
         

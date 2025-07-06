@@ -100,7 +100,7 @@ public struct PublicKeyCredentialDescriptor: Hashable, Sendable {
     }
 }
 
-public enum AuthorizationErrorType: Equatable, Sendable, Codable {
+public enum AuthorizationErrorType: String, Equatable, Sendable, Codable {
     case cancelled
     case unknown
     case decoding

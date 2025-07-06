@@ -39,7 +39,7 @@ public class RegistrationController: NSObject, ASAuthorizationControllerDelegate
                 )
             )
             
-            completion(.success(response))
+            completeOnce(.success(response))
             
         case let r as ASAuthorizationSecurityKeyPublicKeyCredentialRegistration:
             var transports: [Data] = []
@@ -68,10 +68,10 @@ public class RegistrationController: NSObject, ASAuthorizationControllerDelegate
                 )
             )
             
-            completion(.success(response))
+            completeOnce(.success(response))
             break
         default:
-            completion(.failure(AuthorizationError.init(type: .unhandled)))
+            completeOnce(.failure(AuthorizationError.init(type: .unhandled)))
             break
         }
     }
@@ -80,9 +80,9 @@ public class RegistrationController: NSObject, ASAuthorizationControllerDelegate
         guard let authorizationError = error as? ASAuthorizationError else {
             let nsError = error as NSError
             if (nsError.domain == "WKErrorDomain" && nsError.code == 8) {
-                completion(.failure(AuthorizationError(type: .excludeCredentialsMatch, originalError: error)))
+                completeOnce(.failure(AuthorizationError(type: .excludeCredentialsMatch, originalError: error)))
             } else {
-                completion(.failure(AuthorizationError(type: .unknown, originalError: error)))
+                completeOnce(.failure(AuthorizationError(type: .unknown, originalError: error)))
             }
             
             return
@@ -92,7 +92,7 @@ public class RegistrationController: NSObject, ASAuthorizationControllerDelegate
         if #available(iOS 18.0, macOS 15.0, *) {
             if authorizationError.code == ASAuthorizationError.matchedExcludedCredential {
                 // This error is specific to iOS 18 and macOS 15, indicating that the request matched an excluded credential.
-                completion(.failure(AuthorizationError(type: .excludeCredentialsMatch, originalError: error)))
+                completeOnce(.failure(AuthorizationError(type: .excludeCredentialsMatch, originalError: error)))
                 return
             }
         }
@@ -108,16 +108,16 @@ public class RegistrationController: NSObject, ASAuthorizationControllerDelegate
             break
         case ASAuthorizationError.failed:
             if (error.localizedDescription.contains("is not associated with domain")) {
-                completion(.failure(AuthorizationError(type: .domainNotAssociated, originalError: error)))
+                completeOnce(.failure(AuthorizationError(type: .domainNotAssociated, originalError: error)))
             } else {
-                completion(.failure(AuthorizationError(type: .unknown, originalError: error)))
+                completeOnce(.failure(AuthorizationError(type: .unknown, originalError: error)))
             }
             break
         case ASAuthorizationError.invalidResponse, ASAuthorizationError.notHandled, ASAuthorizationError.unknown:
-            completion(.failure(AuthorizationError(type: .unknown, originalError: error)))
+            completeOnce(.failure(AuthorizationError(type: .unknown, originalError: error)))
             break
         default:
-            completion(.failure(AuthorizationError(type: .cancelled, originalError: error)))
+            completeOnce(.failure(AuthorizationError(type: .cancelled, originalError: error)))
             break
         }
         
@@ -143,7 +143,7 @@ public class RegistrationController: NSObject, ASAuthorizationControllerDelegate
         
         // Cancel the authorization and report the error
         DispatchQueue.main.async {
-            self.completion(.failure(AuthorizationError(type: .noPresentationAnchor)))
+            self.completeOnce(.failure(AuthorizationError(type: .noPresentationAnchor)))
             self.authorizationController?.cancel()
         }
         
@@ -166,7 +166,7 @@ public class RegistrationController: NSObject, ASAuthorizationControllerDelegate
         
         // Cancel the authorization and report the error
         DispatchQueue.main.async {
-            self.completion(.failure(AuthorizationError(type: .noPresentationAnchor)))
+            self.completeOnce(.failure(AuthorizationError(type: .noPresentationAnchor)))
             self.authorizationController?.cancel()
         }
         
@@ -176,7 +176,7 @@ public class RegistrationController: NSObject, ASAuthorizationControllerDelegate
         let dummyWindow = UIWindow(frame: CGRect.zero)
         
         DispatchQueue.main.async {
-            self.completion(.failure(AuthorizationError(type: .noPresentationAnchor)))
+            self.completeOnce(.failure(AuthorizationError(type: .noPresentationAnchor)))
             self.authorizationController?.cancel()
         }
         
