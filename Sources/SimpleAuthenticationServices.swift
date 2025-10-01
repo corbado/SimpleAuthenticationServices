@@ -15,6 +15,9 @@ public protocol AuthorizationControllerProtocol: Sendable { // Protocol itself s
     @available(macOS 13.0, *)
     @MainActor // This method will present UI
     func create(requests: [ASAuthorizationRequest]) async throws -> AuthorizationResult
+    
+    @MainActor // This method will present UI
+    func signalAllAcceptedCredentials(rpID: String, userHandle: Data, acceptedCredentialIDs: [Data]) async throws(AuthorizationError)
 
     @MainActor // This method might interact with an ongoing UI operation
     func cancel() async
