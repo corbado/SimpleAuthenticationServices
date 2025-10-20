@@ -74,6 +74,22 @@ final public class RealAuthorizationController: AuthorizationControllerProtocol,
     }
     
     @MainActor
+    public func signalAllAcceptedCredentials(rpID: String, userHandle: Data, acceptedCredentialIDs: [Data]) async throws(AuthorizationError) {
+        if #available(iOS 26.0, *) {
+            let credentialUpdater = ASCredentialUpdater()
+            do {
+                try await credentialUpdater.reportAllAcceptedPublicKeyCredentials(
+                    relyingPartyIdentifier: rpID,
+                    userHandle: userHandle,
+                    acceptedCredentialIDs: acceptedCredentialIDs
+                )
+            } catch {
+                throw AuthorizationError(type: .unknown, originalError: error)
+            }
+        }
+    }
+    
+    @MainActor
     public func cancel() {
         self.inFlightController?.cancel()
         self.inFlightController = nil

@@ -159,6 +159,11 @@ public final class VirtualAuthorizationController: AuthorizationControllerProtoc
         return nil
     }
     
+    @MainActor
+    public func signalAllAcceptedCredentials(rpID: String, userHandle: Data, acceptedCredentialIDs: [Data]) async throws(AuthorizationError) {
+        return
+    }
+    
     public func cancel() async {
         return
     }
