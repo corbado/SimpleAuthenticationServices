@@ -236,6 +236,7 @@ class RelyingPartyServer {
         let url = baseURL.appendingPathComponent("health")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
+        request.timeoutInterval = 1
         
         do {
             let (data, response) = try await session.data(for: request)

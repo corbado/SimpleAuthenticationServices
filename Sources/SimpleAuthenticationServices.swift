@@ -119,9 +119,17 @@ public enum AuthorizationErrorType: String, Equatable, Sendable, Codable {
 public struct AuthorizationError: Error, LocalizedError, Sendable {
     public let type: AuthorizationErrorType
     public let originalError: Error?
-    
+
     public init(type: AuthorizationErrorType, originalError: Error? = nil) {
         self.type = type
         self.originalError = originalError
+    }
+
+    public var errorDescription: String? {
+        guard let originalError else {
+            return "AuthorizationError(type: \(type.rawValue))"
+        }
+
+        return "AuthorizationError(type: \(type.rawValue), originalError: \(String(describing: originalError)))"
     }
 }

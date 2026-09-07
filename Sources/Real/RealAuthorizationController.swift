@@ -75,7 +75,7 @@ final public class RealAuthorizationController: AuthorizationControllerProtocol,
     
     @MainActor
     public func signalAllAcceptedCredentials(rpID: String, userHandle: Data, acceptedCredentialIDs: [Data]) async throws(AuthorizationError) {
-        if #available(iOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *) {
             let credentialUpdater = ASCredentialUpdater()
             do {
                 try await credentialUpdater.reportAllAcceptedPublicKeyCredentials(
