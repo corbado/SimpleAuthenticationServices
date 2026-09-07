@@ -10,13 +10,23 @@ import SimpleAuthenticationServices
 final class GoServerManager {
     static let shared = GoServerManager()
     private var goServerProcess: Process?
-    private var isServerReady = false
+    private var startup: Task<Void, Error>?
     
     private init() {}
     
     func startServerIfNeeded() async throws {
-        guard goServerProcess == nil else { return }
-        
+        if let startup {
+            return try await startup.value
+        }
+
+        // All parallel tests must await readiness, including callers that arrive
+        // after the process launches but before it starts accepting requests.
+        let startup = Task { try await self.startServer() }
+        self.startup = startup
+        try await startup.value
+    }
+
+    private func startServer() async throws {
         print("Starting relying party server...")
         let process = Process()
         guard let executableURL = Bundle.module.url(forResource: "relying-pary-server-arm64-darwin", withExtension: nil, subdirectory: "TestBinaries") else {
@@ -26,19 +36,40 @@ final class GoServerManager {
         try process.run()
         goServerProcess = process
         
-        // server takes a bit of time to start
-        try await Task.sleep(for: .milliseconds(250))
-        print("Started relying party server.")
+        let server = try RelyingPartyServer(baseURLString: "http://localhost:8080")
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: .seconds(10))
+        while clock.now < deadline {
+            try Task.checkCancellation()
+            guard process.isRunning else {
+                throw ServerStartupError.exited(status: process.terminationStatus)
+            }
+            if await server.checkHealth() {
+                print("Started relying party server.")
+                return
+            }
+            try await Task.sleep(for: .milliseconds(50))
+        }
+
+        process.terminate()
+        throw ServerStartupError.readinessTimedOut
     }
     
     
     func stopServer() {
+        startup?.cancel()
+        startup = nil
         guard let process = goServerProcess, process.isRunning else { return }
         print("Stopping relying party server...")
         process.terminate()
         goServerProcess = nil
         print("Stopped relying party server.")
     }
+}
+
+private enum ServerStartupError: Error {
+    case exited(status: Int32)
+    case readinessTimedOut
 }
 
 let rpID = "test.corbado.io"
@@ -250,4 +281,3 @@ func assertThrows<T>(throws: T.Type, _ block: @Sendable @escaping () async throw
     
     return nil
 }
-
