@@ -30,12 +30,15 @@ public class RegistrationController: NSObject, ASAuthorizationControllerDelegate
     public func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
         switch authorization.credential {
         case let r as ASAuthorizationPlatformPublicKeyCredentialRegistration:
+            // AuthenticationServices does not report transports for platform credentials.
             let response = AuthorizationResult(
                 credential: PasskeyRegistrationCredential(
                     credentialID: r.credentialID,
                     rawClientDataJSON: r.rawClientDataJSON,
                     rawAttestationObject: r.rawAttestationObject!,
-                    transports: []
+                    transports: [],
+                    attachment: passkeyAttachment(of: r),
+                    clientExtensionResults: clientExtensionResults(of: r)
                 )
             )
             
@@ -45,26 +48,17 @@ public class RegistrationController: NSObject, ASAuthorizationControllerDelegate
             var transports: [Data] = []
             
             if #available(iOS 17.5, *), #available(macOS 14.5, *) {
-                transports = r.transports.compactMap { transport in
-                    switch transport {
-                    case .usb:
-                        return "usb".data(using: .utf8)
-                    case .nfc:
-                        return "nfc".data(using: .utf8)
-                    case .bluetooth:
-                        return "bluetooth".data(using: .utf8)
-                    default:
-                        return "unknown".data(using: .utf8)
-                    }
-                }
+                transports = r.transports.compactMap { webAuthnTransportName($0)?.data(using: .utf8) }
             }
             
+            // Security keys are roaming authenticators by definition.
             let response = AuthorizationResult(
                 credential: PasskeyRegistrationCredential(
                     credentialID: r.credentialID,
                     rawClientDataJSON: r.rawClientDataJSON,
                     rawAttestationObject: r.rawAttestationObject!,
-                    transports: transports
+                    transports: transports,
+                    attachment: .crossPlatform
                 )
             )
             

@@ -52,7 +52,9 @@ public class AssertionController: NSObject, ASAuthorizationControllerDelegate, A
                     rawClientDataJSON: r.rawClientDataJSON,
                     rawAuthenticatorData: r.rawAuthenticatorData,
                     signature: r.signature,
-                    userID: r.userID
+                    userID: r.userID,
+                    attachment: passkeyAttachment(of: r),
+                    clientExtensionResults: clientExtensionResults(of: r)
                 )
             )
             

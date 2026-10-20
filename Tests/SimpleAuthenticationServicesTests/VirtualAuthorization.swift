@@ -173,6 +173,8 @@ private func create(rps: RelyingPartyServer, authenticator: VirtualAuthorization
         authorizationResult.credential as? PasskeyRegistrationCredential,
         "Credential must be of type PasskeyRegistrationCredential. Actual type: \(type(of: authorizationResult.credential))"
     )
+    #expect(typedCredential.attachment == .platform)
+    #expect(typedCredential.clientExtensionResults.isEmpty)
     
     let registrationData = RPPlatformPublicKeyCredentialRegistration(
         id: typedCredential.credentialID.toBase64URL(),
@@ -208,6 +210,7 @@ private func finishLogin(rps: RelyingPartyServer, authenticatorResponse: Authori
         authenticatorResponse.credential as? PasskeyAssertionCredential,
         "Credential must be of type PasskeyAssertionCredential. Actual type: \(type(of: authenticatorResponse.credential))"
     )
+    #expect(assertionTyped.attachment == .platform)
     
     let loginFinishData = RPPlatformPublicKeyCredentialAssertion(
         id: assertionTyped.credentialID.toBase64URL(),

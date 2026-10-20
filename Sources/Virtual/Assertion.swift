@@ -82,6 +82,7 @@ func createAssertionResponse(rp: RelyingParty, credentials: [Credential], option
         rawClientDataJSON: clientDataJSON,
         rawAuthenticatorData: authenticatorData,
         signature: signature,
-        userID: cred.userID
+        userID: cred.userID,
+        attachment: .platform
     )
 }

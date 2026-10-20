@@ -129,7 +129,8 @@ func createAttestationResponse(rp: RelyingParty, cred: Credential, options: Atte
         credentialID: cred.id,
         rawClientDataJSON: clientDataJSON,
         rawAttestationObject: attestationObjectBytes,
-        transports: []
+        transports: [],
+        attachment: .platform
     )
 }
 
